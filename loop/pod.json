@@ -1,0 +1,5 @@
+{
+  "name": "loop",
+  "description": "Loop — the operator that owns meeting follow-through. Transcript in -> owned, dated, risk-scored action items -> owners nudged on Slack -> risky items gated behind human approval -> overdue work chased autonomously -> commitments and context remembered across meetings.",
+  "format_version": 1
+}

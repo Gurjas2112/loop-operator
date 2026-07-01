@@ -1,0 +1,13 @@
+// activity_log — immutable audit trail of everything the operator and humans do (shared).
+{
+  "name": "activity_log",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "action_item_id", "type": "UUID", "foreign_key": { "references": "action_items.id" } },
+    { "name": "kind", "type": "ENUM", "required": true, "options": ["extracted", "confirmed", "nudged", "replied", "status_changed", "escalated", "approved", "reversed", "redacted"] },
+    { "name": "note", "type": "TEXT" },
+    { "name": "actor", "type": "TEXT", "max_length": 120 }
+  ],
+  "config": {}
+}

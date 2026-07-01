@@ -1,0 +1,8 @@
+// reconcile-on-item — a new action item wakes the reconciler to check contradictions/recommitment.
+{
+  "name": "reconcile-on-item",
+  "schedule_type": "DATASTORE",
+  "config": { "table_name": "action_items", "operations": ["INSERT"] },
+  "agent_name": "reconciler",
+  "is_active": true
+}

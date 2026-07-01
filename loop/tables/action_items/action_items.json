@@ -1,0 +1,24 @@
+// action_items — owned, dated, risk-scored execution items extracted from a meeting (shared).
+{
+  "name": "action_items",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "number", "type": "SERIAL", "auto": true, "unique": true },
+    { "name": "meeting_id", "type": "UUID", "foreign_key": { "references": "meetings.id" }, "required": true },
+    { "name": "title", "type": "TEXT", "required": true, "max_length": 300 },
+    { "name": "kind", "type": "ENUM", "required": true, "default": "task", "options": ["task", "decision", "follow_up", "risk"] },
+    { "name": "owner_user_id", "type": "USER" },
+    { "name": "owner_hint", "type": "TEXT", "max_length": 120 },
+    { "name": "due_date", "type": "DATE" },
+    { "name": "status", "type": "ENUM", "required": true, "default": "proposed", "options": ["proposed", "confirmed", "in_progress", "blocked", "done", "dropped"] },
+    { "name": "risk", "type": "ENUM", "default": "low", "options": ["low", "medium", "high"] },
+    { "name": "confidence", "type": "FLOAT" },
+    { "name": "source_quote", "type": "TEXT" },
+    { "name": "source_page", "type": "INTEGER" },
+    { "name": "nudge_count", "type": "INTEGER", "default": 0 },
+    { "name": "last_nudged_at", "type": "DATETIME" },
+    { "name": "commitment_id", "type": "UUID", "foreign_key": { "references": "commitments.id" } }
+  ],
+  "config": {}
+}

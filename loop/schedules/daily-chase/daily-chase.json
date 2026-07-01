@@ -1,0 +1,8 @@
+// daily-chase — weekdays at 09:00, the operator chases due/overdue items.
+{
+  "name": "daily-chase",
+  "schedule_type": "TIME",
+  "config": { "cron": "0 9 * * 1-5" },
+  "agent_name": "operator",
+  "is_active": true
+}

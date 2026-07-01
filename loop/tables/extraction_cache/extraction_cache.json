@@ -1,0 +1,12 @@
+// extraction_cache — content-addressed cache: SHA-256(transcript) -> extractor JSON (shared).
+{
+  "name": "extraction_cache",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "sha", "type": "TEXT", "required": true, "unique": true, "max_length": 128 },
+    { "name": "payload", "type": "JSON", "required": true },
+    { "name": "model", "type": "TEXT", "max_length": 120 }
+  ],
+  "config": {}
+}

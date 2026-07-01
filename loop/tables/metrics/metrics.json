@@ -1,0 +1,12 @@
+// metrics — observability counters/latencies emitted by functions (shared).
+{
+  "name": "metrics",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "name", "type": "TEXT", "required": true, "max_length": 120 },
+    { "name": "value", "type": "FLOAT", "required": true },
+    { "name": "labels", "type": "JSON" }
+  ],
+  "config": {}
+}

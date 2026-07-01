@@ -1,0 +1,35 @@
+{
+  "meeting_id": "REPLACE_WITH_A_REAL_MEETING_ID",
+  "summary": "Sample extraction: one high-risk external item, one owned task, one decision.",
+  "items": [
+    {
+      "title": "Email Vinci vendor to confirm renewal pricing",
+      "kind": "follow_up",
+      "owner_hint": "Dana",
+      "due_date": "2026-07-10",
+      "risk": "high",
+      "confidence": 0.55,
+      "source_quote": "I need to email the Vinci vendor to confirm the renewal pricing before month end.",
+      "source_page": 1
+    },
+    {
+      "title": "Ship rate-limit endpoint",
+      "kind": "task",
+      "owner_hint": "Marco",
+      "due_date": "2026-07-08",
+      "risk": "medium",
+      "confidence": 0.9,
+      "source_quote": "I'll add the rate-limit endpoint by next Wednesday.",
+      "source_page": 2
+    },
+    {
+      "title": "Standardize on new ingestion schema",
+      "kind": "decision",
+      "owner_hint": "Marco",
+      "risk": "low",
+      "confidence": 0.95,
+      "source_quote": "we're standardizing on the new ingestion schema, dropping the legacy one.",
+      "source_page": 1
+    }
+  ]
+}

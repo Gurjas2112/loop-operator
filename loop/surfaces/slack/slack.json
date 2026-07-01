@@ -1,0 +1,17 @@
+// slack — the conversational surface. The `desk` agent answers DMs/mentions.
+// account_id references an org connector account that must exist in the target env (see README /
+// scripts/setup-slack.md). Replace <slack-account-uuid> and the channel id before enabling.
+{
+  "name": "slack",
+  "platform": "SLACK",
+  "default_agent_name": "desk",
+  "credential_mode": "CUSTOM",
+  "account_id": "<slack-account-uuid>",
+  "is_enabled": true,
+  "config": {
+    "dm_conversation_reset_after_hours": 24,
+    "channels": [
+      { "channel_id": "C_REPLACE_ME", "channel_name": "loop" }
+    ]
+  }
+}

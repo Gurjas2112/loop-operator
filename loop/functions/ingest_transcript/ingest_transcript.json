@@ -1,0 +1,15 @@
+// ingest_transcript — write transcript bytes to /transcripts and create the meetings row.
+// The INSERT fires the meeting-intake workflow (via the intake-on-meeting DATASTORE schedule).
+// Schemas are DERIVED from code.py headers — never declared here.
+{
+  "name": "ingest_transcript",
+  "description": "Content-address a transcript (sha256), store it in /transcripts, and create a meetings row that triggers intake.",
+  "type": "API",
+  "code": { "$file": "code.py" },
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "meetings", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "folder", "resource_name": "/transcripts", "permission_ids": ["folder.read", "folder.write"] }
+    ]
+  }
+}

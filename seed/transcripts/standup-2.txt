@@ -1,0 +1,23 @@
+<!-- PAGE 1 -->
+Weekly Standup — Following Monday
+Attendees: Sam (organizer), Priya, Marco, Dana
+
+Sam: Status on the Acme deck, Priya?
+Priya: It slipped again. I'll get it done by this Thursday.
+Sam: That's the third time. It's still the high-risk customer deck.
+
+Marco: The rate-limit endpoint shipped. New task: I'll run the production database migration this Friday.
+Sam: A prod migration is risky — let's flag it and make sure there's a rollback plan.
+
+Dana: I need to send the Acme customer the renewal quote — that's an external financial commitment, so it needs your sign-off before it goes out.
+Sam: Agreed, I approve nothing until I see the numbers.
+
+<!-- PAGE 2 -->
+Dana: Also we should send the Vinci vendor the signed contract by Wednesday. External, legal.
+Sam: High risk. Route it through approval.
+
+Priya: Follow-up: I'll finally deliver the icon set alongside the deck.
+Sam: Reversal to note — we previously decided to standardize on the new ingestion schema; Marco, are we sticking with that?
+Marco: Yes, no change.
+
+Sam: Recap — Priya: deck (Thursday), Marco: prod migration (Friday), Dana: Acme quote + Vinci contract (need approval).

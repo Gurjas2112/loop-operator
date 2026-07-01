@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loop — Execution Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Tailwind CDN is available for quick utilities; the design system below is hand-authored. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --base:#0E1116; --panel:#161B22; --panel-2:#1B222C; --hair:#232A34;
+      --ink:#E7ECF3; --muted:#8B97A7;
+      --ok:#3DD9B0; --warn:#F5A623; --over:#FF5C6C;
+      --accent:#6EA8FE; --accent-hover:#8FBDFF;
+      --r:12px; --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s6:24px; --s8:32px;
+    }
+    * { box-sizing:border-box; }
+    html,body { margin:0; height:100%; }
+    body {
+      background:radial-gradient(1200px 600px at 80% -10%, #131a24 0%, var(--base) 55%);
+      color:var(--ink); font-family:Inter,system-ui,sans-serif; font-size:14px; line-height:1.45;
+      -webkit-font-smoothing:antialiased;
+    }
+    h1,h2,h3,.display { font-family:"Space Grotesk",Inter,sans-serif; letter-spacing:-.01em; margin:0; }
+    .mono { font-family:"JetBrains Mono",monospace; }
+    a { color:var(--accent); text-decoration:none; }
+    button { font-family:inherit; cursor:pointer; }
+    :focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+
+    .app { display:flex; flex-direction:column; min-height:100%; }
+    header.top {
+      display:flex; align-items:center; gap:var(--s6); padding:var(--s4) var(--s6);
+      border-bottom:1px solid var(--hair); position:sticky; top:0; z-index:20;
+      background:rgba(14,17,22,.82); backdrop-filter:blur(8px);
+    }
+    .brand { display:flex; align-items:center; gap:var(--s3); }
+    .brand .dot { width:12px; height:12px; border-radius:50%; background:conic-gradient(from 0deg,var(--ok),var(--warn),var(--over),var(--ok)); box-shadow:0 0 14px rgba(61,217,176,.5); }
+    .brand b { font-family:"Space Grotesk"; font-size:16px; }
+    .brand span { color:var(--muted); font-size:12px; }
+    .counters { display:flex; gap:var(--s6); margin-left:auto; align-items:flex-end; }
+    .counter { text-align:right; }
+    .counter .n { font-family:"Space Grotesk"; font-size:34px; font-weight:700; line-height:1; }
+    .counter .l { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+    .counter.over .n { color:var(--over); }
+    .counter.warn .n { color:var(--warn); }
+    .clock { color:var(--muted); font-size:12px; display:flex; flex-direction:column; align-items:flex-end; }
+    .conn { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
+    .conn .led { width:8px; height:8px; border-radius:50%; background:var(--muted); }
+    .conn.live .led { background:var(--ok); box-shadow:0 0 8px var(--ok); }
+
+    /* Deadline Horizon */
+    .horizon-wrap { padding:var(--s4) var(--s6) 0; }
+    .horizon {
+      position:relative; height:74px; border:1px solid var(--hair); border-radius:var(--r);
+      background:linear-gradient(90deg, rgba(61,217,176,.05), rgba(245,166,35,.05) 62%, rgba(255,92,108,.10));
+      overflow:hidden;
+    }
+    .horizon .now { position:absolute; top:0; bottom:0; width:2px; background:var(--ink); opacity:.85; }
+    .horizon .now::after { content:"NOW"; position:absolute; top:4px; left:6px; font:600 10px "JetBrains Mono"; color:var(--ink); letter-spacing:.1em; }
+    .horizon .past { position:absolute; top:0; bottom:0; left:0; background:rgba(255,92,108,.06); }
+    .hdot { position:absolute; width:12px; height:12px; border-radius:50%; transform:translate(-50%,-50%); transition:left .6s ease; cursor:pointer; }
+    .hdot:hover { transform:translate(-50%,-50%) scale(1.35); }
+    .hdot.over { animation:pulse 2.4s ease-in-out 1; }
+    .horizon .scale { position:absolute; bottom:4px; left:8px; right:8px; display:flex; justify-content:space-between; color:var(--muted); font:400 10px "JetBrains Mono"; }
+    @keyframes pulse { 0%{ box-shadow:0 0 0 0 rgba(255,92,108,.6);} 70%{ box-shadow:0 0 0 10px rgba(255,92,108,0);} 100%{ box-shadow:0 0 0 0 rgba(255,92,108,0);} }
+
+    .layout { display:grid; grid-template-columns:1fr 360px; gap:var(--s4); padding:var(--s4) var(--s6) var(--s8); align-items:start; }
+
+    /* Board */
+    .board { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:var(--s3); }
+    .col { background:var(--panel); border:1px solid var(--hair); border-radius:var(--r); padding:var(--s3); min-height:200px; }
+    .col h3 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:var(--s3); }
+    .col h3 .k { color:var(--ink); }
+    .card {
+      background:var(--panel-2); border:1px solid var(--hair); border-left:3px solid var(--hair);
+      border-radius:10px; padding:var(--s3); margin-bottom:var(--s2); cursor:pointer; transition:transform .12s ease, border-color .12s ease;
+    }
+    .card:hover { transform:translateY(-1px); border-color:#31404f; }
+    .card.risk-high { border-left-color:var(--over); }
+    .card.risk-medium { border-left-color:var(--warn); }
+    .card.risk-low { border-left-color:var(--ok); }
+    .card .row1 { display:flex; align-items:center; gap:var(--s2); }
+    .card .num { font:500 11px "JetBrains Mono"; color:var(--muted); }
+    .card .title { font-weight:600; margin:2px 0 6px; font-size:13px; }
+    .card .meta { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+    .badge { font-size:10px; padding:2px 7px; border-radius:999px; border:1px solid var(--hair); color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+    .badge.sla-over { color:var(--over); border-color:rgba(255,92,108,.4); background:rgba(255,92,108,.08); }
+    .badge.sla-warn { color:var(--warn); border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.08); }
+    .badge.sla-ok { color:var(--ok); border-color:rgba(61,217,176,.35); background:rgba(61,217,176,.08); }
+    .badge.mem { color:var(--accent); border-color:rgba(110,168,254,.4); background:rgba(110,168,254,.08); }
+    .card.glow { box-shadow:0 0 0 1px rgba(255,92,108,.35),0 0 22px rgba(255,92,108,.18); }
+    .empty { color:var(--muted); font-size:12px; padding:var(--s3); text-align:center; border:1px dashed var(--hair); border-radius:10px; }
+
+    /* Sidebar */
+    .side { display:flex; flex-direction:column; gap:var(--s4); }
+    .panel { background:var(--panel); border:1px solid var(--hair); border-radius:var(--r); overflow:hidden; }
+    .panel > .hd { padding:var(--s3) var(--s4); border-bottom:1px solid var(--hair); display:flex; align-items:center; justify-content:space-between; }
+    .panel > .hd h2 { font-size:13px; letter-spacing:.02em; }
+    .panel > .bd { padding:var(--s3) var(--s4); }
+    .approval { border:1px solid var(--hair); border-radius:10px; padding:var(--s3); margin-bottom:var(--s2); background:var(--panel-2); }
+    .approval .title { font-weight:600; font-size:13px; margin-bottom:6px; }
+    .approval .acts { display:flex; gap:var(--s2); margin-top:var(--s2); }
+    .btn { border:1px solid var(--hair); background:transparent; color:var(--ink); padding:7px 10px; border-radius:8px; font-size:12px; font-weight:600; }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:#0b1220; }
+    .btn.primary:hover { background:var(--accent-hover); }
+    .btn.ghost:hover { border-color:#31404f; }
+    .kpis { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--s2); }
+    .kpi { background:var(--panel-2); border:1px solid var(--hair); border-radius:10px; padding:var(--s3); }
+    .kpi .n { font-family:"Space Grotesk"; font-size:22px; font-weight:700; }
+    .kpi .l { color:var(--muted); font-size:11px; }
+    .feed { max-height:220px; overflow:auto; }
+    .feed .ev { display:flex; gap:var(--s2); padding:6px 0; border-bottom:1px solid var(--hair); font-size:12px; }
+    .feed .ev:last-child { border-bottom:0; }
+    .feed .ev .k { font:500 10px "JetBrains Mono"; color:var(--muted); text-transform:uppercase; min-width:74px; }
+    lemma-agent-thread { display:block; height:340px; --lemma-bg:var(--panel-2); --lemma-accent:var(--accent); --lemma-radius:10px; }
+
+    /* Drawer */
+    .scrim { position:fixed; inset:0; background:rgba(4,7,11,.6); opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40; }
+    .scrim.open { opacity:1; pointer-events:auto; }
+    .drawer { position:fixed; top:0; right:0; bottom:0; width:min(480px,94vw); background:var(--panel); border-left:1px solid var(--hair); transform:translateX(100%); transition:transform .24s ease; z-index:50; overflow:auto; }
+    .drawer.open { transform:translateX(0); }
+    .drawer .dh { padding:var(--s4) var(--s6); border-bottom:1px solid var(--hair); display:flex; justify-content:space-between; align-items:flex-start; gap:var(--s3); position:sticky; top:0; background:var(--panel); }
+    .drawer .db { padding:var(--s4) var(--s6); }
+    .quote { border-left:3px solid var(--accent); padding:var(--s3) var(--s4); background:var(--panel-2); border-radius:0 10px 10px 0; font-style:italic; }
+    .section-l { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:var(--s6) 0 var(--s2); }
+    .mem-strip .m { background:var(--panel-2); border:1px solid var(--hair); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:var(--s2) var(--s3); margin-bottom:6px; font-size:12px; }
+    .x { background:transparent; border:0; color:var(--muted); font-size:20px; line-height:1; }
+
+    /* Identity chip + role badge in header */
+    .who { display:flex; align-items:center; gap:var(--s2); padding-left:var(--s4); border-left:1px solid var(--hair); margin-left:var(--s4); }
+    .who .em { font-size:12px; color:var(--ink); max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .role-badge { font-size:10px; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.06em; border:1px solid var(--hair); color:var(--muted); }
+    .role-badge.admin { color:var(--warn); border-color:rgba(245,166,35,.45); background:rgba(245,166,35,.08); }
+    .role-badge.user { color:var(--accent); border-color:rgba(110,168,254,.4); background:rgba(110,168,254,.08); }
+    .role-note { color:var(--muted); font-size:12px; padding:var(--s2) 0; }
+
+    /* Auth gate */
+    .auth-scrim { position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:var(--s4);
+      background:radial-gradient(1000px 500px at 70% -10%, #131a24 0%, rgba(8,11,15,.96) 60%); backdrop-filter:blur(6px); }
+    .auth-scrim.open { display:flex; }
+    .auth-card { width:min(420px,96vw); background:var(--panel); border:1px solid var(--hair); border-radius:16px; padding:var(--s8);
+      box-shadow:0 30px 80px rgba(0,0,0,.5); }
+    .auth-card .brand { justify-content:center; margin-bottom:var(--s2); }
+    .auth-card h1 { text-align:center; font-size:20px; margin-bottom:4px; }
+    .auth-card .sub { text-align:center; color:var(--muted); font-size:12px; margin-bottom:var(--s6); }
+    .tabs { display:flex; gap:4px; background:var(--panel-2); border:1px solid var(--hair); border-radius:10px; padding:4px; margin-bottom:var(--s4); }
+    .tabs button { flex:1; border:0; background:transparent; color:var(--muted); padding:8px; border-radius:8px; font-weight:600; font-size:13px; }
+    .tabs button.on { background:var(--accent); color:#0b1220; }
+    .field { margin-bottom:var(--s3); }
+    .field label { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+    .field input { width:100%; background:var(--panel-2); border:1px solid var(--hair); border-radius:9px; color:var(--ink);
+      padding:10px 12px; font-family:inherit; font-size:14px; }
+    .field input:focus { outline:none; border-color:var(--accent); }
+    .auth-btn { width:100%; background:var(--accent); border:1px solid var(--accent); color:#0b1220; font-weight:700; font-size:14px;
+      padding:11px; border-radius:10px; margin-top:var(--s2); }
+    .auth-btn:hover { background:var(--accent-hover); }
+    .auth-err { color:var(--over); font-size:12px; min-height:16px; margin-top:var(--s2); text-align:center; }
+    .auth-hint { margin-top:var(--s6); border-top:1px dashed var(--hair); padding-top:var(--s4); }
+    .auth-hint .l { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:var(--s2); }
+    .demo-row { display:flex; align-items:center; justify-content:space-between; gap:var(--s2); background:var(--panel-2);
+      border:1px solid var(--hair); border-radius:9px; padding:8px 10px; margin-bottom:6px; cursor:pointer; }
+    .demo-row:hover { border-color:#31404f; }
+    .demo-row .who2 { font-size:12px; }
+    .demo-row .cred { font:400 11px "JetBrains Mono"; color:var(--muted); }
+    .demo-row .use { font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:.06em; }
+
+    @media (max-width:960px){ .layout{ grid-template-columns:1fr; } .board{ grid-template-columns:1fr 1fr; } }
+    @media (max-width:560px){ .board{ grid-template-columns:1fr; } .counters{ gap:var(--s3);} .counter .n{ font-size:24px;} .who .em{ max-width:90px; } }
+    @media (prefers-reduced-motion: reduce){ * { animation:none !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="top">
+      <div class="brand"><span class="dot"></span><b>Loop</b><span>Execution Board</span></div>
+      <div class="counters">
+        <div class="counter over"><div class="n" id="c-over">–</div><div class="l">Overdue</div></div>
+        <div class="counter warn"><div class="n" id="c-today">–</div><div class="l">Due today</div></div>
+        <div class="counter"><div class="n" id="c-open">–</div><div class="l">Open</div></div>
+        <div class="clock">
+          <span class="conn" id="conn"><span class="led"></span><span id="conn-t">connecting</span></span>
+          <span class="mono" id="clock">--:--:--</span>
+        </div>
+      </div>
+      <div class="who" id="who" style="display:none">
+        <span class="em" id="who-em"></span>
+        <span class="role-badge" id="who-role"></span>
+        <button class="btn ghost" id="logout" style="padding:5px 9px">Sign out</button>
+      </div>
+    </header>
+
+    <div class="horizon-wrap">
+      <div class="horizon" id="horizon">
+        <div class="past" id="h-past"></div>
+        <div class="now" style="left:62%"></div>
+        <div class="scale"><span>now − 14d</span><span>now</span><span>now + 21d</span></div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <main>
+        <div class="board" id="board"></div>
+      </main>
+      <aside class="side">
+        <section class="panel">
+          <div class="hd"><h2>Approvals inbox</h2><span class="badge" id="ap-count">0</span></div>
+          <div class="bd" id="approvals"><div class="empty">No approvals waiting.</div></div>
+        </section>
+        <section class="panel">
+          <div class="hd"><h2>Ops</h2></div>
+          <div class="bd">
+            <div class="kpis" id="kpis"></div>
+            <div class="section-l">Recent activity</div>
+            <div class="feed" id="feed"></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="hd"><h2>Desk</h2><span class="badge">ask anything</span></div>
+          <div class="bd"><lemma-agent-thread agent="desk"></lemma-agent-thread></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+  <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Item provenance"></div>
+
+  <div class="auth-scrim" id="auth" role="dialog" aria-modal="true" aria-label="Sign in to Loop">
+    <div class="auth-card">
+      <div class="brand"><span class="dot"></span><b>Loop</b></div>
+      <h1 id="auth-title">Sign in</h1>
+      <div class="sub" id="auth-sub">Access the Execution Board</div>
+      <div class="tabs">
+        <button id="tab-login" class="on" type="button">Sign in</button>
+        <button id="tab-signup" type="button">Create account</button>
+      </div>
+      <form id="auth-form" autocomplete="off">
+        <div class="field" id="name-field" style="display:none">
+          <label for="a-name">Full name</label>
+          <input id="a-name" type="text" placeholder="Jordan Lee" />
+        </div>
+        <div class="field">
+          <label for="a-email">Email</label>
+          <input id="a-email" type="email" placeholder="you@company.com" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label for="a-pass">Password</label>
+          <input id="a-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button class="auth-btn" id="auth-submit" type="submit">Sign in</button>
+        <div class="auth-err" id="auth-err"></div>
+      </form>
+      <div class="auth-hint">
+        <div class="l">Demo credentials — click to fill</div>
+        <div class="demo-row" data-em="admin@loop.demo" data-pw="loop-admin">
+          <div><div class="who2">Admin</div><div class="cred">admin@loop.demo · loop-admin</div></div>
+          <span class="use">use</span>
+        </div>
+        <div class="demo-row" data-em="user@loop.demo" data-pw="loop-user">
+          <div><div class="who2">Main user</div><div class="cred">user@loop.demo · loop-user</div></div>
+          <span class="use">use</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var cfg = window.__LEMMA_CONFIG__ || {};
+      var base = (cfg.apiUrl || window.location.origin).replace(/\/$/, "");
+      function load(path, next){ var s=document.createElement("script"); s.src=base+path; s.onload=next||null; s.onerror=function(){ fatal("Could not load SDK from "+base+path); }; document.head.appendChild(s); }
+      // Load the SDK and stand up the auth gate in parallel; boot() runs once both are ready.
+      load("/public/sdk/lemma-client.js", function(){ load("/public/sdk/lemma-ui.js", function(){ sdkReady = true; maybeBoot(); }); });
+    })();
+
+    function fatal(msg){ document.getElementById("board").innerHTML = '<div class="empty" style="grid-column:1/-1">'+msg+'</div>'; }
+    var STATUSES = ["proposed","confirmed","in_progress","blocked","done"];
+    var LABELS = { proposed:"Proposed", confirmed:"Confirmed", in_progress:"In-progress", blocked:"Blocked", done:"Done" };
+    var client, sdkReady = false, booted = false, session = null;
+    var state = { items:[], meetings:{}, memBySubject:{}, activity:[], metrics:[], approvals:[] };
+
+    /* ---------------------------------------------------------------------
+     * App-level auth gate (login / signup with roles).
+     * NOTE: this is a front-of-app role gate for the demo — it selects the
+     * acting role (main user vs admin) that gates elevated actions such as
+     * approving extracted items. The Lemma platform (SuperTokens) remains the
+     * real identity/session boundary for all data access below. Accounts and
+     * salted SHA-256 password hashes are stored in localStorage; never treat
+     * this as production authentication.
+     * ------------------------------------------------------------------- */
+    var AUTH = (function () {
+      var USERS_KEY = "loop.auth.users.v1", SESS_KEY = "loop.auth.session.v1", SALT = "loop-demo-salt-2026";
+      var DEMO = [
+        { name:"Loop Admin", email:"admin@loop.demo", pw:"loop-admin", role:"admin" },
+        { name:"Loop User",  email:"user@loop.demo",  pw:"loop-user",  role:"user"  }
+      ];
+      async function hash(pw){
+        try {
+          var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(SALT + "::" + pw));
+          return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0"+b.toString(16)).slice(-2); }).join("");
+        } catch(e){ return "plain::" + pw; } // file:// fallback only
+      }
+      function readUsers(){ try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch(e){ return {}; } }
+      function writeUsers(u){ try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch(e){} }
+      async function ensureSeed(){
+        var u = readUsers(), changed = false;
+        for (var i=0;i<DEMO.length;i++){ var d=DEMO[i];
+          if(!u[d.email]){ u[d.email] = { name:d.name, email:d.email, role:d.role, hash:await hash(d.pw) }; changed = true; }
+        }
+        if(changed) writeUsers(u);
+      }
+      return {
+        seed: ensureSeed,
+        current: function(){ try { return JSON.parse(localStorage.getItem(SESS_KEY)); } catch(e){ return null; } },
+        signOut: function(){ try { localStorage.removeItem(SESS_KEY); } catch(e){} },
+        login: async function(email, pw){
+          var u = readUsers()[String(email||"").trim().toLowerCase()];
+          if(!u || u.hash !== await hash(pw)) throw new Error("Invalid email or password.");
+          var s = { name:u.name, email:u.email, role:u.role };
+          localStorage.setItem(SESS_KEY, JSON.stringify(s)); return s;
+        },
+        signup: async function(name, email, pw){
+          email = String(email||"").trim().toLowerCase();
+          if(!name || !email || !pw) throw new Error("All fields are required.");
+          if(pw.length < 6) throw new Error("Password must be at least 6 characters.");
+          var u = readUsers();
+          if(u[email]) throw new Error("That email is already registered — sign in instead.");
+          u[email] = { name:name, email:email, role:"user", hash:await hash(pw) }; // new signups are standard users
+          writeUsers(u);
+          var s = { name:name, email:email, role:"user" };
+          localStorage.setItem(SESS_KEY, JSON.stringify(s)); return s;
+        }
+      };
+    })();
+
+    function isAdmin(){ return !!session && session.role === "admin"; }
+
+    // Boot the board only once the SDK is loaded AND an app-session exists.
+    function maybeBoot(){ if(sdkReady && session && !booted){ booted = true; boot(); } }
+
+    function renderWho(){
+      var who = document.getElementById("who");
+      if(!session){ who.style.display="none"; return; }
+      who.style.display="flex";
+      document.getElementById("who-em").textContent = session.email;
+      var rb = document.getElementById("who-role");
+      rb.textContent = session.role; rb.className = "role-badge " + session.role;
+    }
+
+    function initAuth(){
+      var overlay=document.getElementById("auth"), form=document.getElementById("auth-form");
+      var tabLogin=document.getElementById("tab-login"), tabSignup=document.getElementById("tab-signup");
+      var nameField=document.getElementById("name-field"), title=document.getElementById("auth-title");
+      var sub=document.getElementById("auth-sub"), submit=document.getElementById("auth-submit"), err=document.getElementById("auth-err");
+      var pass=document.getElementById("a-pass"), mode="login";
+
+      function setMode(m){
+        mode=m; err.textContent="";
+        var login = m==="login";
+        tabLogin.classList.toggle("on",login); tabSignup.classList.toggle("on",!login);
+        nameField.style.display = login?"none":"block";
+        title.textContent = login?"Sign in":"Create account";
+        sub.textContent = login?"Access the Execution Board":"New accounts start with the main-user role";
+        submit.textContent = login?"Sign in":"Create account";
+        pass.setAttribute("autocomplete", login?"current-password":"new-password");
+      }
+      function openGate(){ overlay.classList.add("open"); setTimeout(function(){ document.getElementById("a-email").focus(); },50); }
+      function closeGate(){ overlay.classList.remove("open"); }
+
+      tabLogin.onclick=function(){ setMode("login"); };
+      tabSignup.onclick=function(){ setMode("signup"); };
+      Array.prototype.forEach.call(document.querySelectorAll(".demo-row"), function(row){
+        row.onclick=function(){ setMode("login"); document.getElementById("a-email").value=row.getAttribute("data-em"); document.getElementById("a-pass").value=row.getAttribute("data-pw"); err.textContent=""; };
+      });
+      form.addEventListener("submit", async function(e){
+        e.preventDefault(); err.textContent="";
+        submit.disabled=true;
+        try {
+          var email=document.getElementById("a-email").value, pw=pass.value;
+          if(mode==="login") session = await AUTH.login(email, pw);
+          else session = await AUTH.signup(document.getElementById("a-name").value.trim(), email, pw);
+          closeGate(); renderWho(); form.reset();
+          if(booted){ render(); } else { maybeBoot(); }
+        } catch(ex){ err.textContent = ex && ex.message || "Sign-in failed."; }
+        finally { submit.disabled=false; }
+      });
+      document.getElementById("logout").onclick=function(){ AUTH.signOut(); session=null; renderWho(); setMode("login"); openGate(); };
+
+      AUTH.seed().then(function(){
+        session = AUTH.current();
+        renderWho();
+        if(session){ maybeBoot(); } else { openGate(); }
+      });
+    }
+    if(document.readyState!=="loading") initAuth(); else document.addEventListener("DOMContentLoaded", initAuth);
+
+    function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+    function daysUntil(d){ if(!d) return null; var t=new Date(d+"T00:00:00"); var now=new Date(); now.setHours(0,0,0,0); return Math.round((t-now)/86400000); }
+    function sla(item){ if(item.status==="done"||item.status==="dropped") return "done"; var d=daysUntil(item.due_date); if(d===null) return "none"; if(d<0) return "over"; if(d<=2) return "warn"; return "ok"; }
+    function slaLabel(item){ var d=daysUntil(item.due_date); if(d===null) return "no date"; if(d<0) return "Overdue by "+(-d)+"d"; if(d===0) return "Due today"; if(d===1) return "Due tomorrow"; return "Due in "+d+"d"; }
+
+    async function boot(){
+      try {
+        client = new window.LemmaClient.LemmaClient();
+        var st = await client.initialize();
+        if (st.status !== "authenticated") { client.auth.redirectToAuth(); return; }
+        wireUI();
+        await refresh();
+        try {
+          client.datastore.watchChanges({
+            onChange: debounce(refresh, 350),
+            onStatus: function(s){ setConn(s==="open"); },
+            onError: function(){ setConn(false); }
+          });
+        } catch(e){ /* live optional */ }
+        tickClock();
+      } catch(e){ fatal("Failed to start: "+(e && e.message || e)); }
+    }
+
+    function setConn(live){ var el=document.getElementById("conn"); el.classList.toggle("live",!!live); document.getElementById("conn-t").textContent = live?"live":"offline"; }
+    function debounce(fn,ms){ var t; return function(){ clearTimeout(t); t=setTimeout(fn,ms); }; }
+    function tickClock(){ var el=document.getElementById("clock"); function u(){ el.textContent=new Date().toLocaleTimeString(); } u(); setInterval(u,1000); }
+
+    async function safeList(table){ try { return (await client.records.list(table,{limit:200})).items || []; } catch(e){ return []; } }
+
+    async function refresh(){
+      var res = await Promise.all([
+        safeList("action_items"), safeList("meetings"), safeList("memory"),
+        safeList("activity_log"), safeList("metrics"), loadApprovals()
+      ]);
+      state.items = res[0];
+      state.meetings = {}; res[1].forEach(function(m){ state.meetings[m.id]=m; });
+      state.memBySubject = {}; res[2].forEach(function(m){ if(m.superseded_by) return; (state.memBySubject[m.subject]=state.memBySubject[m.subject]||[]).push(m); });
+      state.memRows = res[2];
+      state.activity = res[3].slice().reverse();
+      state.metrics = res[4];
+      state.approvals = res[5];
+      render();
+    }
+
+    async function loadApprovals(){
+      try { return ((await client.workflows.runs.waitingAssignedToMe({limit:50})).items)||[]; }
+      catch(e){ return []; }
+    }
+
+    function memForItem(item){
+      // Match by owner id or by owner_hint against memory subjects.
+      var rows = [];
+      (state.memRows||[]).forEach(function(m){
+        if (m.superseded_by) return;
+        var s=(m.subject||"").toLowerCase();
+        if (item.owner_user_id && m.subject===item.owner_user_id) rows.push(m);
+        else if (item.owner_hint && s && item.owner_hint.toLowerCase().indexOf(s)>=0) rows.push(m);
+      });
+      return rows;
+    }
+
+    function render(){ renderCounters(); renderHorizon(); renderBoard(); renderApprovals(); renderOps(); }
+
+    function renderCounters(){
+      var open = state.items.filter(function(i){ return i.status!=="done"&&i.status!=="dropped"; });
+      var over = open.filter(function(i){ return sla(i)==="over"; }).length;
+      var today = open.filter(function(i){ return daysUntil(i.due_date)===0; }).length;
+      document.getElementById("c-over").textContent = over;
+      document.getElementById("c-today").textContent = today;
+      document.getElementById("c-open").textContent = open.length;
+    }
+
+    function renderHorizon(){
+      var h = document.getElementById("horizon");
+      h.querySelectorAll(".hdot").forEach(function(n){ n.remove(); });
+      var MIND=-14, MAXD=21, NOW=0.62;
+      state.items.filter(function(i){ return i.status!=="done"&&i.status!=="dropped"&&i.due_date; }).forEach(function(i){
+        var d=daysUntil(i.due_date); if(d===null) return; d=Math.max(MIND,Math.min(MAXD,d));
+        var left = (d<=0) ? (NOW*100*((d-MIND)/(0-MIND))) : (NOW*100 + (1-NOW)*100*(d/MAXD));
+        var dot=document.createElement("div"); dot.className="hdot "+(sla(i)==="over"?"over":"");
+        dot.style.left=left+"%"; dot.style.top="42%";
+        var col = sla(i)==="over"?"var(--over)":sla(i)==="warn"?"var(--warn)":"var(--ok)";
+        dot.style.background=col; dot.title="#"+i.number+" "+i.title+" — "+slaLabel(i);
+        dot.setAttribute("data-id", i.id);
+        h.appendChild(dot);
+      });
+      document.getElementById("h-past").style.width = (0.62*100)+"%";
+    }
+
+    function renderBoard(){
+      var board=document.getElementById("board");
+      board.innerHTML = STATUSES.map(function(s){
+        var items = state.items.filter(function(i){ return i.status===s; });
+        var cards = items.length ? items.map(cardHTML).join("") : (s==="proposed"?'<div class="empty">No items yet — drop a transcript to begin.</div>':'<div class="empty">—</div>');
+        return '<div class="col"><h3>'+LABELS[s]+' <span class="k">'+items.length+'</span></h3>'+cards+'</div>';
+      }).join("");
+    }
+
+    function cardHTML(i){
+      var st=sla(i); var glow = (i.status!=="done"&&st==="over") ? " glow":"";
+      var mems=memForItem(i);
+      var memChip = mems.length ? '<span class="badge mem" title="'+esc(mems[0].statement)+'">🧠 '+esc((mems[0].statement||"").slice(0,26))+(mems[0].statement && mems[0].statement.length>26?"…":"")+'</span>' : "";
+      var slaBadge = (i.status==="done"||i.status==="dropped")?"":'<span class="badge sla-'+(st==="over"?"over":st==="warn"?"warn":"ok")+'">'+esc(slaLabel(i))+'</span>';
+      var owner = i.owner_hint || (i.owner_user_id?"assigned":"unowned");
+      return '<div class="card risk-'+esc(i.risk||"low")+glow+'" data-id="'+esc(i.id)+'" tabindex="0" role="button">'
+        + '<div class="row1"><span class="num">#'+esc(i.number)+'</span><span class="badge">'+esc(i.kind||"task")+'</span></div>'
+        + '<div class="title">'+esc(i.title)+'</div>'
+        + '<div class="meta"><span class="badge">'+esc(owner)+'</span>'+slaBadge+memChip+'</div></div>';
+    }
+
+    function renderApprovals(){
+      var box=document.getElementById("approvals");
+      document.getElementById("ap-count").textContent = state.approvals.length;
+      if(!state.approvals.length){ box.innerHTML='<div class="empty">No approvals waiting.</div>'; return; }
+      var admin = isAdmin();
+      box.innerHTML = state.approvals.map(function(a){
+        var run=a.run||{}, wait=a.wait||{};
+        var label = (run.workflow_name||"meeting-intake");
+        var acts = admin
+          ? '<div class="acts">'
+            + '<button class="btn primary" data-approve="'+esc(run.id)+'" data-node="'+esc(wait.node_id)+'">Approve &amp; notify owner</button>'
+            + '<button class="btn ghost" data-reject="'+esc(run.id)+'" data-node="'+esc(wait.node_id)+'">Reject</button>'
+            + '</div>'
+          : '<div class="role-note">Admin approval required — sign in as an admin to release these items.</div>';
+        return '<div class="approval">'
+          + '<div class="title">Approve items from “'+esc(label)+'”</div>'
+          + '<div class="badge">run '+esc(String(run.id||"").slice(0,8))+'</div>'
+          + acts + '</div>';
+      }).join("");
+    }
+
+    async function submitApproval(runId,nodeId,approved){
+      if(!isAdmin()){ alert("Only admins can approve or reject items."); return; }
+      try {
+        await client.workflows.runs.submitForm(runId, { node_id:nodeId, inputs:{ approved:approved } });
+        await refresh();
+      } catch(e){ alert("Could not submit: "+(e&&e.message||e)); }
+    }
+
+    function renderOps(){
+      var agg={}; state.metrics.forEach(function(m){ agg[m.name]=(agg[m.name]||0)+(m.value||0); });
+      var kpis=[
+        ["items_extracted","Items extracted"],
+        ["nudges_sent","Nudges sent"],
+        ["policy_blocks","Policy blocks"],
+        ["memory_facts_written","Facts remembered"]
+      ];
+      document.getElementById("kpis").innerHTML = kpis.map(function(k){
+        return '<div class="kpi"><div class="n">'+(agg[k[0]]||0)+'</div><div class="l">'+k[1]+'</div></div>';
+      }).join("");
+      var feed=document.getElementById("feed");
+      feed.innerHTML = state.activity.slice(0,40).map(function(e){
+        return '<div class="ev"><span class="k">'+esc(e.kind)+'</span><span>'+esc((e.note||"").slice(0,90))+'</span></div>';
+      }).join("") || '<div class="empty">No activity yet.</div>';
+    }
+
+    function openDrawer(id){
+      var i=state.items.filter(function(x){ return x.id===id; })[0]; if(!i) return;
+      var m=state.meetings[i.meeting_id]||{};
+      var acts=state.activity.filter(function(a){ return a.action_item_id===i.id; });
+      var mems=memForItem(i);
+      var d=document.getElementById("drawer");
+      d.innerHTML =
+        '<div class="dh"><div><div class="num mono">#'+esc(i.number)+' · '+esc(i.kind)+' · risk '+esc(i.risk)+'</div>'
+        + '<h1 style="font-size:18px;margin-top:6px;max-width:360px">'+esc(i.title)+'</h1></div>'
+        + '<button class="x" aria-label="Close" id="drawer-x">×</button></div>'
+        + '<div class="db">'
+        + '<div class="section-l">Provenance</div>'
+        + '<div class="quote">“'+esc(i.source_quote||"No quote captured.")+'”</div>'
+        + '<div style="color:var(--muted);font-size:12px;margin-top:8px" class="mono">'
+        +   esc(m.title||"meeting")+(i.source_page?(" · page "+esc(i.source_page)):"")+' · confidence '+((i.confidence!=null)?Math.round(i.confidence*100)+"%":"–")+'</div>'
+        + '<div class="section-l">What we remember</div>'
+        + '<div class="mem-strip">'+ (mems.length? mems.map(function(x){ return '<div class="m">('+esc(x.kind)+') '+esc(x.statement)+'</div>'; }).join("") : '<div class="empty">Nothing remembered about this owner yet.</div>') +'</div>'
+        + '<div class="section-l">Timeline</div>'
+        + '<div class="feed">'+ (acts.length? acts.map(function(a){ return '<div class="ev"><span class="k">'+esc(a.kind)+'</span><span>'+esc(a.note||"")+'</span></div>'; }).join("") : '<div class="empty">No activity yet.</div>') +'</div>'
+        + '</div>';
+      document.getElementById("scrim").classList.add("open");
+      d.classList.add("open");
+      document.getElementById("drawer-x").onclick=closeDrawer;
+    }
+    function closeDrawer(){ document.getElementById("drawer").classList.remove("open"); document.getElementById("scrim").classList.remove("open"); }
+
+    function wireUI(){
+      document.getElementById("scrim").addEventListener("click", closeDrawer);
+      document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeDrawer(); });
+      document.body.addEventListener("click", function(e){
+        var card=e.target.closest("[data-id]"); 
+        var ap=e.target.closest("[data-approve]"); var rj=e.target.closest("[data-reject]");
+        if(ap){ submitApproval(ap.getAttribute("data-approve"), ap.getAttribute("data-node"), true); return; }
+        if(rj){ submitApproval(rj.getAttribute("data-reject"), rj.getAttribute("data-node"), false); return; }
+        if(card && card.classList.contains("hdot")) { openDrawer(card.getAttribute("data-id")); return; }
+        if(card && card.classList.contains("card")) { openDrawer(card.getAttribute("data-id")); }
+      });
+      document.body.addEventListener("keydown", function(e){
+        if((e.key==="Enter"||e.key===" ") && e.target.classList && e.target.classList.contains("card")){ e.preventDefault(); openDrawer(e.target.getAttribute("data-id")); }
+      });
+    }
+  </script>
+</body>
+</html>

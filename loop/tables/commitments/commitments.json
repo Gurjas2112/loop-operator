@@ -1,0 +1,15 @@
+// commitments — cross-meeting promises tracked across time (shared).
+{
+  "name": "commitments",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "title", "type": "TEXT", "required": true, "max_length": 300 },
+    { "name": "owner_user_id", "type": "USER" },
+    { "name": "first_seen_meeting_id", "type": "UUID" },
+    { "name": "times_recommitted", "type": "INTEGER", "default": 1 },
+    { "name": "current_status", "type": "ENUM", "default": "open", "options": ["open", "done", "dropped"] },
+    { "name": "is_reversed", "type": "BOOLEAN", "default": false }
+  ],
+  "config": {}
+}

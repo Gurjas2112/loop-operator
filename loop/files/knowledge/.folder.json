@@ -1,0 +1,4 @@
+{
+  "description": "team-context.md: who's who (owner resolution) + risk rules. Read by the extractor to resolve owners and set risk.",
+  "visibility": "POD"
+}

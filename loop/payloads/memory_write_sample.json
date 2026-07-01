@@ -1,0 +1,10 @@
+{
+  "facts": [
+    {
+      "subject": "Priya",
+      "kind": "pattern",
+      "statement": "Priya slips deck deadlines",
+      "confidence": 0.8
+    }
+  ]
+}

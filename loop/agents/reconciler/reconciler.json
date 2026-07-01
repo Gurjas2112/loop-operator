@@ -1,0 +1,18 @@
+// reconciler — orthogonal judgment: contradictions + chronic recommitment across meetings.
+// Runtime is swappable via an OpenAI-compatible profile (see scripts/setup-open-model.md):
+//   - Local open model (default, zero-cost): run scripts/register-open-model.py, e.g. qwen2.5:*-instruct
+//   - Hosted GPT-5.5: create the profile, then set the block below.
+//   "agent_runtime": { "profile_id": "<openai-compatible-profile-id>", "model_name": "qwen2.5:7b-instruct" },
+{
+  "name": "reconciler",
+  "description": "On a new action item, reconcile it against open commitments: flag reversals (contradicted decisions) and chronic recommitment.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "action_items", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "datastore_table", "resource_name": "commitments", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "activity_log", "permission_ids": ["datastore.table.read", "datastore.record.write"] }
+    ]
+  }
+}

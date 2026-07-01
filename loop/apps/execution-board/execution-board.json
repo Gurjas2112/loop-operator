@@ -1,0 +1,5 @@
+{
+  "name": "execution-board",
+  "description": "Loop Execution Board — a live ops situation room: swimlane board colored by risk, a Deadline Horizon rail, an approvals inbox, an ops panel, and Desk chat.",
+  "public_slug": "execution-board"
+}

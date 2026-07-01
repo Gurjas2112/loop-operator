@@ -1,0 +1,21 @@
+# Editor / IDE artifacts
+.cursor/
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Local secrets / env
+.env
+.env.*
+*.local
+
+# OS cruft
+.DS_Store
+Thumbs.db

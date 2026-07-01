@@ -1,0 +1,14 @@
+// memory_write — distil durable facts into the structured `memory` table AND the semantic /memory files.
+{
+  "name": "memory_write",
+  "description": "Upsert durable facts into the memory table (supersede on change) and append a semantic bullet to /memory/<subject>.md so any agent can recall it.",
+  "type": "API",
+  "code": { "$file": "code.py" },
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "memory", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "folder", "resource_name": "/memory", "permission_ids": ["folder.read", "folder.write"] },
+      { "resource_type": "datastore_table", "resource_name": "metrics", "permission_ids": ["datastore.table.read", "datastore.record.write"] }
+    ]
+  }
+}

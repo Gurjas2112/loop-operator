@@ -1,0 +1,23 @@
+<!-- PAGE 1 -->
+Weekly Standup — Monday
+Attendees: Sam (organizer), Priya, Marco, Dana
+
+Sam: Let's go around. Priya, where's the customer deck?
+Priya: I'll have the new design deck done by Friday. I know I've slipped it before, but this time Friday for real.
+Sam: Okay. That deck goes to the Acme customer, so it's a public-facing promise — let's treat it as high risk.
+
+Marco: I finished the data pipeline refactor. Decision: we're standardizing on the new ingestion schema, dropping the legacy one.
+Sam: Good, that's decided then.
+
+Dana: I need to email the Vinci vendor to confirm the renewal pricing before month end. That's an external financial commitment.
+Sam: Right — nothing goes to Vinci until I approve the numbers.
+
+<!-- PAGE 2 -->
+Marco: I'll also add the rate-limit endpoint by next Wednesday. Internal, low risk.
+Priya: Follow-up: I still owe the icon set from two weeks ago. I'll fold it into the deck.
+Sam: Note that Priya has now re-committed to that icon work twice.
+
+Dana: One more — we promised the Acme customer a status update call this Thursday. That's a public promise.
+Sam: High risk, external. Let's make sure it happens.
+
+Sam: Wrapping up. Marco owns API + pipeline, Priya owns design/deck, Dana owns customer/vendor comms.

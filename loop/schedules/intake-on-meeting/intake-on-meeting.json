@@ -1,0 +1,8 @@
+// intake-on-meeting — a new meetings row starts the meeting-intake workflow.
+{
+  "name": "intake-on-meeting",
+  "schedule_type": "DATASTORE",
+  "config": { "table_name": "meetings", "operations": ["INSERT"] },
+  "workflow_name": "meeting-intake",
+  "is_active": true
+}

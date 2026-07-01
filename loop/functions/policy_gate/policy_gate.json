@@ -1,0 +1,13 @@
+// policy_gate — the guardrail. Presidio PII redaction + action policy on anything leaving the pod.
+{
+  "name": "policy_gate",
+  "description": "Redact PII (Presidio) and enforce the action policy: block external high-risk sends unless the item is confirmed. Returns {allowed, redacted_text, reason}.",
+  "type": "API",
+  "code": { "$file": "code.py" },
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "activity_log", "permission_ids": ["datastore.table.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "metrics", "permission_ids": ["datastore.table.read", "datastore.record.write"] }
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+// meeting-intake — the choreography: extract -> persist -> gate -> (approve?) -> notify.
+// Triggered on a new meetings row. DATASTORE_EVENT exposes the id at start.metadata.record_id.
+{
+  "name": "meeting-intake",
+  "description": "On a new meeting: extract execution, persist items + commitments, gate risky/uncertain items behind a human approval FORM, then notify owners on Slack.",
+  "start": {
+    "type": "DATASTORE_EVENT",
+    "config": { "table_name": "meetings", "operations": ["INSERT"] }
+  },
+  "nodes": [
+    {
+      "id": "extract",
+      "type": "AGENT",
+      "label": "Extract execution",
+      "config": {
+        "agent_name": "extractor",
+        "input_mapping": {
+          "meeting_id": { "type": "expression", "value": "start.metadata.record_id" }
+        }
+      }
+    },
+    {
+      "id": "persist",
+      "type": "FUNCTION",
+      "label": "Persist items + commitments",
+      "config": {
+        "function_name": "persist_items",
+        "input_mapping": {
+          "meeting_id": { "type": "expression", "value": "start.metadata.record_id" },
+          "items": { "type": "expression", "value": "extract.items" },
+          "summary": { "type": "expression", "value": "extract.summary", "optional": true }
+        }
+      }
+    },
+    {
+      "id": "gate",
+      "type": "DECISION",
+      "label": "Needs human confirmation?",
+      "config": {
+        "rules": [
+          { "condition": "persist.needs_confirmation == `true`", "next_node_id": "confirm" }
+        ]
+      }
+    },
+    {
+      "id": "confirm",
+      "type": "FORM",
+      "label": "Organizer approval",
+      "config": {
+        "assignee_pod_member_id_expression": "persist.organizer_member_id",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "approved": { "type": "boolean" },
+            "edits": { "type": "string" }
+          },
+          "required": ["approved"]
+        },
+        "ui_schema": { "ui:order": ["approved", "edits"] }
+      }
+    },
+    {
+      "id": "notify",
+      "type": "FUNCTION",
+      "label": "Notify owners on Slack",
+      "config": {
+        "function_name": "notify_owners",
+        "input_mapping": {
+          "meeting_id": { "type": "expression", "value": "start.metadata.record_id" }
+        }
+      }
+    },
+    { "id": "end", "type": "END", "label": "Done" }
+  ],
+  "edges": [
+    { "id": "e1", "source": "extract", "target": "persist" },
+    { "id": "e2", "source": "persist", "target": "gate" },
+    { "id": "e3", "source": "gate", "target": "notify", "label": "no confirmation needed (default)" },
+    { "id": "e4", "source": "confirm", "target": "notify" },
+    { "id": "e5", "source": "notify", "target": "end" }
+  ]
+}

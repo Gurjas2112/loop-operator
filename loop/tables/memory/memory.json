@@ -1,0 +1,16 @@
+// memory — structured/entity memory: durable facts per subject with confidence + provenance (shared).
+{
+  "name": "memory",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "subject", "type": "TEXT", "required": true, "max_length": 200 },
+    { "name": "kind", "type": "ENUM", "required": true, "options": ["person_fact", "preference", "norm", "decision", "pattern"] },
+    { "name": "statement", "type": "TEXT", "required": true },
+    { "name": "confidence", "type": "FLOAT", "default": 0.7 },
+    { "name": "source_meeting_id", "type": "UUID", "foreign_key": { "references": "meetings.id" } },
+    { "name": "last_seen_at", "type": "DATETIME" },
+    { "name": "superseded_by", "type": "UUID", "foreign_key": { "references": "memory.id" } }
+  ],
+  "config": {}
+}

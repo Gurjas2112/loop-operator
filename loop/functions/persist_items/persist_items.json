@@ -1,0 +1,17 @@
+// persist_items — coordinated multi-write: action_items rows + commitment linking + activity + metrics.
+// A function earns its place here (several writes at once). Schemas derive from code.py headers.
+{
+  "name": "persist_items",
+  "description": "Persist extracted items as action_items, link/roll-up cross-meeting commitments, log activity, emit metrics, and report whether human confirmation is required.",
+  "type": "API",
+  "code": { "$file": "code.py" },
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "action_items", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "meetings", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "commitments", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "activity_log", "permission_ids": ["datastore.table.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "metrics", "permission_ids": ["datastore.table.read", "datastore.record.write"] }
+    ]
+  }
+}

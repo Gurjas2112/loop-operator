@@ -1,0 +1,18 @@
+// notify_owners — DM each confirmed item's owner on Slack, gated by policy_gate, with nudge tracking.
+// Grants include the function-tool set for policy_gate (read+execute) + policy_gate's own mirrored grants.
+{
+  "name": "notify_owners",
+  "description": "For every confirmed action item in a meeting, redact+policy-check the message and DM the owner on Slack, tracking nudges and logging activity.",
+  "type": "API",
+  "code": { "$file": "code.py" },
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "action_items", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "user_prefs", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "datastore_table", "resource_name": "activity_log", "permission_ids": ["datastore.table.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "metrics", "permission_ids": ["datastore.table.read", "datastore.record.write"] },
+      { "resource_type": "connector", "resource_name": "slack", "permission_ids": ["connector.use"] },
+      { "resource_type": "function", "resource_name": "policy_gate", "permission_ids": ["function.read", "function.execute"] }
+    ]
+  }
+}

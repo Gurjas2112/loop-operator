@@ -1,0 +1,46 @@
+// extractor — the ONE judgment pass: classify + extract + resolve owner + risk + confidence + cite.
+// Runtime is swappable via an OpenAI-compatible profile (see scripts/setup-open-model.md):
+//   - Local open model (default, zero-cost): run scripts/register-open-model.py, e.g. qwen2.5:*-instruct
+//   - Hosted GPT-5.5: create the profile, then set the block below.
+//   "agent_runtime": { "profile_id": "<openai-compatible-profile-id>", "model_name": "qwen2.5:7b-instruct" },
+{
+  "name": "extractor",
+  "description": "Turn a meeting transcript into owned, dated, risk-scored action items with page provenance.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "output_schema": {
+    "type": "object",
+    "required": ["items"],
+    "properties": {
+      "summary": { "type": "string" },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["title", "kind", "risk", "confidence", "source_quote"],
+          "properties": {
+            "title": { "type": "string" },
+            "kind": { "type": "string", "enum": ["task", "decision", "follow_up", "risk"] },
+            "owner_hint": { "type": "string" },
+            "owner_user_id": { "type": "string" },
+            "due_date": { "type": "string" },
+            "risk": { "type": "string", "enum": ["low", "medium", "high"] },
+            "confidence": { "type": "number" },
+            "source_quote": { "type": "string" },
+            "source_page": { "type": "integer" }
+          }
+        }
+      }
+    }
+  },
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "meetings", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "datastore_table", "resource_name": "memory", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "datastore_table", "resource_name": "extraction_cache", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "folder", "resource_name": "/transcripts", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/knowledge", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/memory", "permission_ids": ["folder.read"] }
+    ]
+  }
+}

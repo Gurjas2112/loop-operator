@@ -1,0 +1,10 @@
+// curate-memory — when a meeting is updated (e.g. status -> ready), the librarian grows memory.
+// Note: this fires on UPDATE of meetings; the librarian only writes the `memory` table + /memory
+// files (never meetings), so there is no trigger loop.
+{
+  "name": "curate-memory",
+  "schedule_type": "DATASTORE",
+  "config": { "table_name": "meetings", "operations": ["UPDATE"] },
+  "agent_name": "librarian",
+  "is_active": true
+}

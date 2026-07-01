@@ -1,0 +1,12 @@
+// user_prefs — the ONLY RLS table: per-user notification prefs + Slack identity mapping.
+{
+  "name": "user_prefs",
+  "primary_key_column": "id",
+  "enable_rls": true,
+  "columns": [
+    { "name": "channel", "type": "ENUM", "default": "slack", "options": ["slack"] },
+    { "name": "slack_user_id", "type": "TEXT", "max_length": 60 },
+    { "name": "quiet_hours", "type": "JSON" }
+  ],
+  "config": {}
+}

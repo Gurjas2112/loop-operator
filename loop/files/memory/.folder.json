@@ -1,0 +1,4 @@
+{
+  "description": "SEMANTIC long-term memory: distilled markdown per subject (person/topic), auto-indexed + embedded so any agent recalls via search. Written by memory_write; the pod IS the RAG system.",
+  "visibility": "POD"
+}

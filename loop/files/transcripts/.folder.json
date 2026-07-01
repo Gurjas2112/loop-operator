@@ -1,0 +1,4 @@
+{
+  "description": "Uploaded meeting transcripts (auto-indexed -> provenance). Each file is <sha>.md written by ingest_transcript; the extractor reads the converted markdown with <!-- PAGE N --> markers.",
+  "visibility": "POD"
+}

@@ -1,0 +1,13 @@
+// record_reply — parse an owner's Slack reply into a status/due-date change on an action item.
+{
+  "name": "record_reply",
+  "description": "Parse an owner reply (done | blocked | in progress | slipping to <date> | dropped) and update the action item status/due date, logging the change.",
+  "type": "API",
+  "code": { "$file": "code.py" },
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "action_items", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "activity_log", "permission_ids": ["datastore.table.read", "datastore.record.write"] }
+    ]
+  }
+}

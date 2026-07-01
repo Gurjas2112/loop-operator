@@ -1,0 +1,22 @@
+// desk — the Slack surface agent. Answers questions about the board + memory, records replies.
+// Grants include the function-tool set for record_reply (read+execute) + its mirrored grants.
+// Runtime is swappable via an OpenAI-compatible profile (see scripts/setup-open-model.md):
+//   - Local open model (default, zero-cost): run scripts/register-open-model.py, e.g. qwen2.5:*-instruct
+//   - Hosted GPT-5.5: create the profile, then set the block below.
+//   "agent_runtime": { "profile_id": "<openai-compatible-profile-id>", "model_name": "qwen2.5:7b-instruct" },
+{
+  "name": "desk",
+  "description": "Conversational front door: what's due today, show my items, what do we know about <person>, mark #N done.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "action_items", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "commitments", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "datastore_table", "resource_name": "activity_log", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "memory", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "folder", "resource_name": "/memory", "permission_ids": ["folder.read"] },
+      { "resource_type": "function", "resource_name": "record_reply", "permission_ids": ["function.read", "function.execute"] }
+    ]
+  }
+}

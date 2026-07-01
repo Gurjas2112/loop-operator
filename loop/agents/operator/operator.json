@@ -1,0 +1,24 @@
+// operator — the scheduled chaser. Calls notify_owners + policy_gate as tools; escalates via approval.
+// Runtime is swappable via an OpenAI-compatible profile (see scripts/setup-open-model.md):
+//   - Local open model (default, zero-cost): run scripts/register-open-model.py, e.g. qwen2.5:*-instruct
+//   - Hosted GPT-5.5: create the profile, then set the block below.
+//   "agent_runtime": { "profile_id": "<openai-compatible-profile-id>", "model_name": "qwen2.5:7b-instruct" },
+{
+  "name": "operator",
+  "description": "Chase overdue/at-risk action items: nudge owners on Slack, remember chronic slippers, escalate after repeated nudges behind a human approval.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD", "USER_INTERACTION"],
+  "permissions": {
+    "grants": [
+      { "resource_type": "datastore_table", "resource_name": "action_items", "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "activity_log", "permission_ids": ["datastore.table.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "metrics", "permission_ids": ["datastore.table.read", "datastore.record.write"] },
+      { "resource_type": "datastore_table", "resource_name": "user_prefs", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "datastore_table", "resource_name": "memory", "permission_ids": ["datastore.table.read", "datastore.record.read"] },
+      { "resource_type": "folder", "resource_name": "/memory", "permission_ids": ["folder.read"] },
+      { "resource_type": "connector", "resource_name": "slack", "permission_ids": ["connector.use"] },
+      { "resource_type": "function", "resource_name": "notify_owners", "permission_ids": ["function.read", "function.execute"] },
+      { "resource_type": "function", "resource_name": "policy_gate", "permission_ids": ["function.read", "function.execute"] }
+    ]
+  }
+}

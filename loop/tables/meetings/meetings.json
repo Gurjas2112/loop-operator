@@ -1,0 +1,18 @@
+// meetings — one row per ingested meeting/transcript (shared team data).
+{
+  "name": "meetings",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "title", "type": "TEXT", "required": true, "max_length": 300 },
+    { "name": "occurred_at", "type": "DATETIME" },
+    { "name": "source", "type": "ENUM", "default": "upload", "options": ["upload", "google_meet", "zoom", "fireflies", "manual"] },
+    { "name": "transcript_path", "type": "FILE_PATH", "max_length": 500 },
+    { "name": "transcript_sha", "type": "TEXT", "max_length": 128 },
+    { "name": "organizer_user_id", "type": "USER" },
+    { "name": "status", "type": "ENUM", "default": "ingested", "options": ["ingested", "extracting", "ready"] },
+    { "name": "summary", "type": "TEXT" },
+    { "name": "attendees", "type": "JSON" }
+  ],
+  "config": {}
+}

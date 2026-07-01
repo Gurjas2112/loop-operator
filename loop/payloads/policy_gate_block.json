@@ -1,0 +1,5 @@
+{
+  "text": "Call me at 415-555-0000 or email dana@vinci.com about the renewal.",
+  "action": "external_send",
+  "item": { "risk": "high", "status": "proposed" }
+}
