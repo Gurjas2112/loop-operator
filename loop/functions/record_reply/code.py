@@ -5,11 +5,15 @@
 
 import re
 
-import structlog
 from pydantic import BaseModel
 from lemma_sdk import FunctionContext, Pod
 
-log = structlog.get_logger()
+try:  # structlog installs from #python_packages before real runs; stay import-safe during schema extraction
+    import structlog
+    log = structlog.get_logger()
+except ModuleNotFoundError:
+    import logging
+    log = logging.getLogger("loop")
 
 
 class ReplyInput(BaseModel):
