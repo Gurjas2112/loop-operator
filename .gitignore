@@ -19,3 +19,9 @@ venv/
 # OS cruft
 .DS_Store
 Thumbs.db
+
+# Live tunnel artifacts (ephemeral URLs — regenerate with scripts/host-live.ps1)
+.live-url.txt
+.live-auth-url.txt
+.cloudflared-*.log
+scripts/LIVE_URL.md
