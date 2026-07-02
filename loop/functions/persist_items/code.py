@@ -3,6 +3,7 @@
 #function_name: persist_items
 #python_packages: structlog
 
+import uuid as _uuid
 from pydantic import BaseModel
 from typing import Any
 from lemma_sdk import FunctionContext, Pod
@@ -69,6 +70,22 @@ async def persist_items(ctx: FunctionContext, data: PersistInput) -> PersistResu
     created = 0
 
     for it in data.items:
+        # Title is required, but some models omit it — derive one from the quote.
+        title = (it.get("title") or "").strip()
+        if not title:
+            quote = (it.get("source_quote") or "").strip()
+            title = (quote[:80] + "…") if len(quote) > 80 else (quote or "Untitled action item")
+        it["title"] = title
+        # owner_user_id must be a real UUID; models often return a name — drop it
+        # (the raw name is preserved in owner_hint) so the USER column stays valid.
+        owner_raw = it.get("owner_user_id")
+        if owner_raw:
+            try:
+                _uuid.UUID(str(owner_raw))
+            except (ValueError, AttributeError, TypeError):
+                if not it.get("owner_hint"):
+                    it["owner_hint"] = str(owner_raw)[:120]
+                it["owner_user_id"] = None
         low_conf = float(it.get("confidence") or 0) < 0.6
         unowned = not it.get("owner_user_id")
         high_risk = it.get("risk") == "high"
